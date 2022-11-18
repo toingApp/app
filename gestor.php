@@ -9,11 +9,12 @@ input[type=text]{color:green;background:#1e1a15}
 	<script src="css/motor.js?dd=z"></script>
 	<script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
 <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/perl/perl.min.js"></script>
+<script language="javascript" type="text/javascript" src="https://codemirror.net/5/addon/display/autorefresh.js"></script>
 
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css"></link>
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/abbott.min.css"></link>
 </head>
-
+<body>
 <?php
 function show_files($start) {
     $contents = scandir($start);
@@ -50,8 +51,10 @@ function show_files($start) {
     }
     function save() {
    $content = $_POST['content'];
-   file_put_contents($_POST['path'].$_POST['file'], urldecode(str_replace("textar","textarea",$content)));
-    }
+   $fh = fopen($_POST['path'].$_POST['file'],'w');
+   fwrite($fh,urldecode(str_replace("textar","textarea",$content)));
+   fclose($fh);    }
+    
     function load() {
     $fh = fopen($_POST['path'].$_POST['file'],'r');
 while ($line = fgets($fh)) {
@@ -76,45 +79,48 @@ show_files($fold);
  if(isset($_GET['edit'])){   ?>
 
  <input type="text" id="filename" value="<?php echo $_GET['file']; ?>"><br>
-<textarea id="html_content" 
-name="code" style="height:500"><?php
+<textarea id="editor"
+onblur="doBlur(this)"><?php
 $fh = fopen($_GET['path'].$_GET['file'],'r');
 while ($line = fgets($fh)) {
   echo(str_replace("textarea","textar",$line));
 }
 fclose($fh);
 ?></textarea>
-<br>
 <button id="save">save</button>
 <button id="load" style="display:none">load</button><br><br><br><br><br><br><br><br>
 <button id="delete">delete</button>
- 
+ <button id="aut">delete</button>
   
  	<script>
- var editor = CodeMirror.fromTextArea(document.getElementById('html_content'), {
+ var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
     lineNumbers: true,
     mode: 'text/x-perl',
     theme: 'abbott',
-}).setSize("100%", "90%");
+});
+editor.setSize("100%", "80%");
  	var url = "gestor.php";
 <?php echo "var file='".$_GET['file']."';  ";?>
 <?php echo "var path ='".$_GET['path']."';  "; ?>
  var formData = new FormData();
  $(document).ready(function() {
  $("#save").click(function() {
- 	alert($("#html_content").val());
+ 	  var text = encodeURIComponent(editor.getValue());
  	formData.append('file',file);
     formData.append('path',path);
-    formData.append('content', $("#html_content").val());
+    formData.append('content', text); 
     formData.append('action','save');
       jQuery.ajax({
         url : url,
         contentType: false,
    processData: false,
         data : formData,
-        type: 'POST',
+        type: 'POST', success:function(res){
+editor.blur();
+},
         error:function (){}
     });
+    return true;
 });
 $("#delete").click(function() {
 	formData.append('file',file);
@@ -128,6 +134,7 @@ $("#delete").click(function() {
         type: 'POST',
         error:function (){}
     });
+    return  true;
 });
 $("#load").click( function() {
 	alert('');
@@ -145,7 +152,11 @@ $("#load").click( function() {
         },
         error:function (){}
     });
+    return true;
 });
 });
- </script>
+function doBlur(obj) {
+  setTimeout(function() { obj.focus(); }, 10);
+}
+</script>
 <?php  } ?>

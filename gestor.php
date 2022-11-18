@@ -105,7 +105,7 @@ editor.setSize("100%", "80%");
  var formData = new FormData();
  $(document).ready(function() {
  $("#save").click(function() {
- 	  var text = encodeURIComponent(editor.getValue());
+  var text = editor.getValue();
  	formData.append('file',file);
     formData.append('path',path);
     formData.append('content', text); 

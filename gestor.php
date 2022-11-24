@@ -58,7 +58,7 @@ function show_files($start) {
     function load() {
     $fh = fopen($_POST['path'].$_POST['file'],'r');
 while ($line = fgets($fh)) {
-  echo "mmmm".(str_replace("textarea","textar",$line));
+  echo "mmmm".(str_replace("textar","textar",$line));
 }
 fclose($fh);
     }
@@ -105,7 +105,7 @@ editor.setSize("100%", "80%");
  var formData = new FormData();
  $(document).ready(function() {
  $("#save").click(function() {
-  var text = editor.getValue();
+  var text =  encodeURIComponent(editor.getValue());
  	formData.append('file',file);
     formData.append('path',path);
     formData.append('content', text); 
